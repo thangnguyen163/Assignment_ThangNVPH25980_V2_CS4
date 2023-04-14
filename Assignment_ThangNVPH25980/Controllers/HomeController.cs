@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Assignment_ThangNVPH25980.Controllers
 {
@@ -86,7 +87,7 @@ namespace Assignment_ThangNVPH25980.Controllers
         public IActionResult Bill()
         {
             List<BillDetails> billDetails = billDeatailServices.GetAllBillDetail();
-            List<Bill> bills = context.Bill.Include("Accounts").Include("BillDetails").ToList();
+            List<Bill> bills = context.Bill.Include("Accounts").Include("BillDetails").OrderBy(x=>x.CreatedDate).ToList();
             ViewBag.BillDetails = billDetails;
             ViewBag.Bills = bills;
             return View();
@@ -135,7 +136,7 @@ namespace Assignment_ThangNVPH25980.Controllers
                     billDeatailServices.Add(billDetail);
                     //Add 1 sản phẩm vào bill detail
                     //Sau đó Update số lượng
-                    //Product.AvailableQuantity = Product.AvailableQuantity - cartdetail.Quantity;
+                    productDetails.AvaiableQuatity = productDetails.AvaiableQuatity - cartdetail.Quantity;
                     productDetailServices.Update(productDetails);
                     //Xóa ở CartDetail
                     cartDetailServices.Delete(cartdetail.Id);
@@ -289,7 +290,23 @@ namespace Assignment_ThangNVPH25980.Controllers
         }
         #endregion
 
+        [HttpGet]
+        public IActionResult Search(string name)
+        {
+            var list = productServices.GetAllProducts();
+            if (!string.IsNullOrEmpty(name))
+            {
+                list = list.Where(x=>x.Name.Contains(name)).ToList();
+            }
+            ViewBag.Name = list;
+            return View();
 
+        }
+
+
+
+
+        
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

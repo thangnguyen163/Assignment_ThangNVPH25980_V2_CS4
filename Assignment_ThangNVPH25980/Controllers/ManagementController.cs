@@ -3,6 +3,7 @@ using Assignment_ThangNVPH25980.Models;
 using Assignment_ThangNVPH25980.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace Assignment_ThangNVPH25980.Views
 {
@@ -119,14 +120,15 @@ namespace Assignment_ThangNVPH25980.Views
 
         //}
 
-
+        [HttpGet]
         public IActionResult AddProductDetail(Guid Id)
         {
             List<Size> sizes = sizeServices.GetAllSize();
             List<Color> colors=colorServices.GetAllColor();
             ViewBag.Sizes=sizes;
             ViewBag.Color=colors;
-            return View();
+            var p=productServices.GetProductsById(Id);
+            return View(p);
         }
         [HttpPost]
         public IActionResult AddProductDetail(ProductDetails productDetails,Guid Id)
@@ -138,7 +140,50 @@ namespace Assignment_ThangNVPH25980.Views
             }
             return View();
         }
+        [HttpGet]
+        public IActionResult UpdateProductDetail(Guid Id)
+        {
+            var p = productDetailServices.GetProductDetailsById(Id);
+            return View(p);
+        }
+        public IActionResult UpdateProductDetail(ProductDetails productDetails)          
+        {
+            if (productDetailServices.Update(productDetails))
+            {
+                return RedirectToAction("ShowListProdcutDetail");
+            }
+            return View();
+        }
 
+        public IActionResult DeleteProduct(Guid Id)
+
+        {   if (productServices.Delete(Id))
+            {
+                return RedirectToAction("ProductList");
+            }
+            return View();
+        }
+
+        public IActionResult DeleteTest(Guid Id)
+        {
+            Products a = productServices.GetProductsById(Id);
+            HttpContext.Session.SetString("delete", JsonConvert.SerializeObject(a));
+            if (productServices.Delete(Id))
+            {
+                return RedirectToAction("ProductList");
+            }
+            return View();
+        }
+        public IActionResult RollBack()
+        {
+            string json = HttpContext.Session.GetString("delete");
+            var pro=JsonConvert.DeserializeObject<Products>(json);
+            if (productServices.Add(pro))
+            {
+                return RedirectToAction("ProductList");
+            }
+            return View();
+        }
 
     }
 }
